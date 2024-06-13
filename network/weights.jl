@@ -8,7 +8,7 @@ end
 
 function init_weights()
     # Xavier initialization for RNN weights
-    rnn_weights = Variable(xavier_init(784, 64), name = "rnn_weights")
+    rnn_weights = Variable(xavier_init(196, 64), name = "rnn_weights")
     rnn_recurrent_weights = Variable(xavier_init(64, 64), name = "rnn_recurrent_weights")
     rnn_bias = Variable(zeros(64), name = "rnn_bias")  # Biases can be initialized similarly
 

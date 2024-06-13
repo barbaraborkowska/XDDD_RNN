@@ -12,11 +12,7 @@ x_test = reshape(test_data.features, 28 * 28, :)
 y_test = Flux.onehotbatch(test_data.targets, 0:9)
 
 # training
-rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias = train(x_train, y_train, 10, 100, 1e-2)
-
-@show rnn_bias
-
-@show dense_bias
+rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias = train(x_train, y_train, 5, 100, 15e-3)
 
 # testing
 test(x_test, y_test, rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias)

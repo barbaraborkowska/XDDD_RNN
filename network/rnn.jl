@@ -7,7 +7,7 @@ include("./cross_entropy_loss.jl")
 
 function train(x, y, epochs, batch_size, learning_rate)
     rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias = init_weights()
-
+   
     global num_of_correct_clasiffications = 0
     global num_of_clasiffications = 0
 
@@ -16,10 +16,9 @@ function train(x, y, epochs, batch_size, learning_rate)
         num_of_samples = size(x, 2)
 
         for j in 1:num_of_samples
-            train_x1 = Constant(x[:,j])
+            train_x = x[:,j]
             train_y = Constant(y[:,j])
-
-            graph = build_graph(train_x1, train_y, rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias);
+            graph = build_graph(train_x, train_y, rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias);
                 
             epoch_loss += forward!(graph)
             backward!(graph)
@@ -44,10 +43,10 @@ function test(x, y, rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights,
 	global num_of_clasiffications = 0
 
 	for j=1:num_of_samples
-		train_x1 = Constant(x[:,j])
-        train_y = Constant(y[:,j])
+		test_x = x[:,j]
+        test_y = Constant(y[:,j])
 
-        graph = build_graph(train_x1, train_y, rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias);
+        graph = build_graph(test_x, test_y, rnn_weights, rnn_recurrent_weights, rnn_bias, dense_weights, dense_bias);
 
 		forward!(graph)
 	end
