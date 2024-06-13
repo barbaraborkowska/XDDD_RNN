@@ -21,12 +21,12 @@ function forward(::BroadcastedOperator{typeof(rnn)}, x, w, w_rec, b, h_prev)
     return (w * x .+ w_rec * h_prev .+ b)
 end
 function backward(op::BroadcastedOperator{typeof(rnn)}, x, w, w_rec, b, h_prev, g)
-    h = forward(op, x, w, w_rec, b, h_prev)  # Calculate current hidden state
-    grad_h = g .* (1 .- h.^2)  # Gradient through the tanh non-linearity
-    grad_x = w' * grad_h  # Gradient w.r.t. input
-    grad_w = grad_h * x'  # Gradient w.r.t. input weights
-    grad_w_rec = grad_h * h_prev'  # Gradient w.r.t. recurrent weights
-    grad_b = grad_h  # Gradient w.r.t. bias
-    grad_h_prev = w_rec' * grad_h  # Gradient w.r.t. previous hidden state
+    h = forward(op, x, w, w_rec, b, h_prev)  
+    grad_h = g .* (1 .- h.^2)
+    grad_x = w' * grad_h
+    grad_w = grad_h * x'
+    grad_w_rec = grad_h * h_prev'
+    grad_b = grad_h
+    grad_h_prev = w_rec' * grad_h
     return (grad_x, grad_w, grad_w_rec, grad_b, grad_h_prev)
 end

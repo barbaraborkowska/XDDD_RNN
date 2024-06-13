@@ -1,0 +1,1 @@
+Jebać RNN - pozdro
