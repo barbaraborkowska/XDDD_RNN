@@ -12,9 +12,9 @@ function train(r::RNN_CUST, x::Any, y::Any)
 
 
     
-   # println("TEST RUN WITHOUT LEARNING ---- SHOULD BE AROUND 10% ACCURACY")
-    #test(r, x, y)
-    #println("------------------------------------------------------")
+    println("TEST RUN WITHOUT LEARNING ---- SHOULD BE AROUND 10% ACCURACY")
+    test(r, x, y)
+    println("------------------------------------------------------")
 
     global good_clasiff = 0
     global all_clasiff = 0
