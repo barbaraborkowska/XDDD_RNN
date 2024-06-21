@@ -14,10 +14,10 @@ end
 
 function update_weights!(graph::Vector, lr::Float64, batch_size::Int64)
     for node in graph
-        if isa(node, Variable) && hasproperty(node, :gradient)
+        if isa(node, Variable) && hasproperty(node, :batch_gradient)
 			node.batch_gradient ./= batch_size
-            node.output -= lr * node.batch_gradient 
-            node.batch_gradient .= 0
+            node.output .-= lr * node.batch_gradient 
+            fill(node.batch_gradient, 0) ##
         end
     end
 end

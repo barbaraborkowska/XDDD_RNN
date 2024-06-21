@@ -23,21 +23,16 @@ end
 
 # Optimized backward function
 function backward(op::BroadcastedOperator{typeof(rnn)}, x, w, w_rec, b, h_prev, g)
-    h = forward(op, x, w, w_rec, b, h_prev)  
+    h = forward(op, x, w, w_rec, b, h_prev)  # OPTIMIZATION
     grad_h = g .* (1 .- h.^2)
-    
-    grad_x = similar(x)
-    grad_w = similar(w)
-    grad_w_rec = similar(w_rec)
-    grad_b = similar(b)
-    grad_h_prev = similar(h_prev)
-    
- 
-    grad_x .= w' * grad_h
-    grad_w .= grad_h * x'
-    grad_w_rec .= grad_h * h_prev'
-    grad_b .= grad_h
-    grad_h_prev .= w_rec' * grad_h
+
+    grad_h = g .* (1 .- h.^2)
+
+    grad_x = w' * grad_h
+    grad_w = grad_h * x'
+    grad_w_rec = grad_h * h_prev'
+    grad_b = sum(grad_h, dims=2)
+    grad_h_prev = w_rec' * grad_h
    
 
     return (grad_x, grad_w, grad_w_rec, grad_b, grad_h_prev)

@@ -11,6 +11,11 @@ using Plots
 function train(r::RNN_CUST, x::Any, y::Any)
 
 
+    
+   # println("TEST RUN WITHOUT LEARNING ---- SHOULD BE AROUND 10% ACCURACY")
+    #test(r, x, y)
+    #println("------------------------------------------------------")
+
     global good_clasiff = 0
     global all_clasiff = 0
     global_epoch_loss = Vector{Float64}()
@@ -59,10 +64,10 @@ function train(r::RNN_CUST, x::Any, y::Any)
     end
 
     plt = plot(global_epoch_loss, label="Loss", xlabel="Iteration", ylabel="Loss")
-    savefig(plt, "loss.png")
+    savefig(plt, "./images/loss.png")
 
     plt = plot(global_accuracy, label="Accuracy", xlabel="Iteration", ylabel="Accuracy")
-    savefig(plt, "accuracy.png")
+    savefig(plt, "./images/accuracy.png")
 
 end
 
@@ -73,13 +78,22 @@ function test(r::RNN_CUST,x, y)
 	global good_clasiff = 0
 	global all_clasiff = 0
 
-	for j=1:num_of_samples
-		test_x = x[:,j]
-        test_y = Constant(y[:,j])
+    train_y = Constant(y[:,1])
+    x_t1 = Variable(x[1:196, 1])
+    x_t2 = Variable(x[197:392, 1]) 
+    x_t3 = Variable(x[393:588, 1]) 
+    x_t4 = Variable(x[589:end, 1]) 
 
-        graph = build_graph(test_x, test_y, r.rnn_weights, r.rnn_recurrent_weights, r.rnn_bias, r.dense_weights, r.dense_bias, r.arch);
+    graph = build_graph(x_t1, x_t2, x_t3, x_t4, train_y, r.rnn_weights, r.rnn_recurrent_weights, r.rnn_bias, r.dense_weights, r.dense_bias, r.arch);
 
+	for j=2:num_of_samples
 		forward!(graph)
+
+        x_t1.output = x[1:196, j]
+        x_t2.output = x[197:392, j]
+        x_t3.output = x[393:588, j] 
+        x_t4.output = x[589:end, j]
+        train_y.output = y[:,j]
 	end
 
     println("TEST ACCURACY: ", good_clasiff/all_clasiff, " (RECOGNIZED ", good_clasiff, "/", all_clasiff, ")")
