@@ -9,7 +9,7 @@ function build_graph(x_t1, x_t2, x_t3, x_t4, train_y, rnn_weights, rnn_recurrent
     l5 = dense(l4, dense_weights, dense_bias) |> identity
     e = cross_entropy_loss(l5, train_y)
 
-    return topological_sort(e)
+    return topological_sort(e), l5
 end
 
 function update_weights!(graph::Vector, lr::Float64, batch_size::Int64)
@@ -17,7 +17,7 @@ function update_weights!(graph::Vector, lr::Float64, batch_size::Int64)
         if isa(node, Variable) && hasproperty(node, :batch_gradient)
 			node.batch_gradient ./= batch_size
             node.output .-= lr * node.batch_gradient 
-            fill(node.batch_gradient, 0) ##
+            fill!(node.batch_gradient, 0) ## OPTIMIZATION
         end
     end
 end

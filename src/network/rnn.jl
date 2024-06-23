@@ -5,8 +5,19 @@ include("./train/forward.jl")
 include("./graph/graph.jl")
 include("./cross_entropy_loss.jl")
 include("./rnn_custom.jl")
-using Plots
+# using Plots
+import Statistics: mean
 
+function onecold(y::Any)
+    return map(argmax, eachcol(y)) .- 1 
+end
+function accuracy_calculation(y::Any, ŷ::GraphNode)
+    true_labels = onecold(y.output)
+    predicted_labels = onecold(ŷ.output)
+    
+    acc = mean(predicted_labels .== true_labels)
+    return round(100 * acc; digits=2)
+end
 
 function train(r::RNN_CUST, x::Any, y::Any)
 
@@ -16,8 +27,6 @@ function train(r::RNN_CUST, x::Any, y::Any)
     test(r, x, y)
     println("------------------------------------------------------")
 
-    global good_clasiff = 0
-    global all_clasiff = 0
     global_epoch_loss = Vector{Float64}()
     global_accuracy = Vector{Float64}()
 
@@ -27,17 +36,17 @@ function train(r::RNN_CUST, x::Any, y::Any)
     x_t3 = Variable(x[393:588, 1]) 
     x_t4 = Variable(x[589:end, 1]) 
 
-    graph = build_graph(x_t1, x_t2, x_t3, x_t4, train_y, r.rnn_weights, r.rnn_recurrent_weights, r.rnn_bias, r.dense_weights, r.dense_bias, r.arch);
+    graph, ŷ = build_graph(x_t1, x_t2, x_t3, x_t4, train_y, r.rnn_weights, r.rnn_recurrent_weights, r.rnn_bias, r.dense_weights, r.dense_bias, r.arch);
+    global grads = init_gradients(x_t1, r.rnn_weights, r.rnn_recurrent_weights)
 
+    num_of_samples = size(x, 2)
     @time for epoch in 1:r.epochs
-        epoch_loss = 0.0
-        iter_loss = 0.0
-        num_of_samples = size(x, 2)
+        epoch_loss::Float64 = 0.0
+        iter_loss::Float64 = 0.0
+        
+        epoch_accuracy::Float64 = 0.0
 
-        global good_clasiff = 0
-		global all_clasiff = 0
-
-        for j in 2:num_of_samples
+        for j in 2:num_of_samples       # backward na 1 ?
             
             loss = forward!(graph)
             epoch_loss += loss
@@ -51,6 +60,7 @@ function train(r::RNN_CUST, x::Any, y::Any)
                 push!(global_accuracy, good_clasiff/all_clasiff)
 				iter_loss = 0.0
 			end
+            epoch_accuracy += accuracy_calculation(train_y, ŷ)
 
             x_t1.output = x[1:196, j]
             x_t2.output = x[197:392, j]
@@ -60,21 +70,21 @@ function train(r::RNN_CUST, x::Any, y::Any)
         end
 
         println("EPOCH: ", epoch,".  AVG LOSS: ", epoch_loss  / num_of_samples)
-		println("ACCURACY: ", good_clasiff/all_clasiff, " (RECOGNIZED ", good_clasiff, "/", all_clasiff, ")\n")
+        println("Accuracy: ", round(epoch_accuracy / num_of_samples, digits=2), "%")
     end
 
-    plt = plot(global_epoch_loss, label="Loss", xlabel="Iteration", ylabel="Loss")
-    savefig(plt, "./images/loss.png")
+    # plt = plot(global_epoch_loss, label="Loss", xlabel="Iteration", ylabel="Loss")
+    # savefig(plt, "./images/loss.png")
 
-    plt = plot(global_accuracy, label="Accuracy", xlabel="Iteration", ylabel="Accuracy")
-    savefig(plt, "./images/accuracy.png")
+    # plt = plot(global_accuracy, label="Accuracy", xlabel="Iteration", ylabel="Accuracy")
+    # savefig(plt, "./images/accuracy.png")
 
 end
 
 
 function test(r::RNN_CUST,x, y)
-	num_of_samples = size(x, 2)
-
+	num_of_samples = size(x, 2) 
+    accuracy = 0.0
 	global good_clasiff = 0
 	global all_clasiff = 0
 
@@ -84,10 +94,10 @@ function test(r::RNN_CUST,x, y)
     x_t3 = Variable(x[393:588, 1]) 
     x_t4 = Variable(x[589:end, 1]) 
 
-    graph = build_graph(x_t1, x_t2, x_t3, x_t4, train_y, r.rnn_weights, r.rnn_recurrent_weights, r.rnn_bias, r.dense_weights, r.dense_bias, r.arch);
-
+    graph, ŷ = build_graph(x_t1, x_t2, x_t3, x_t4, train_y, r.rnn_weights, r.rnn_recurrent_weights, r.rnn_bias, r.dense_weights, r.dense_bias, r.arch);
 	for j=2:num_of_samples
 		forward!(graph)
+        accuracy += accuracy_calculation(train_y, ŷ)
 
         x_t1.output = x[1:196, j]
         x_t2.output = x[197:392, j]
@@ -95,6 +105,7 @@ function test(r::RNN_CUST,x, y)
         x_t4.output = x[589:end, j]
         train_y.output = y[:,j]
 	end
+    
+    println("Accuracy: ", round(accuracy / num_of_samples, digits=2), "%")
 
-    println("TEST ACCURACY: ", good_clasiff/all_clasiff, " (RECOGNIZED ", good_clasiff, "/", all_clasiff, ")")
 end
